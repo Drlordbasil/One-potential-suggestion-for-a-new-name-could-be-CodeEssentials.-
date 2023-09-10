@@ -26,7 +26,7 @@ class WebScraper:
             if url.startswith("/url?q="):
                 url = url[7:]
                 urls.append(url)
-        
+
         return urls
 
     def scrape_content(self):
@@ -36,7 +36,7 @@ class WebScraper:
             soup = BeautifulSoup(response.text, "html.parser")
             text = soup.get_text()
             scraped_content.append(text)
-        
+
         return scraped_content
 
 
@@ -52,7 +52,7 @@ class ContentAggregator:
         for text in self.content:
             filtered_text = self.filter_text(text)
             filtered_content.append(filtered_text)
-        
+
         self.content = filtered_content
 
     def filter_text(self, text):
@@ -67,14 +67,15 @@ class ContentAggregator:
 
     def rank_content(self):
         model = Word2Vec(self.content, min_count=1)
-        self.content = sorted(self.content, key=lambda text: model.wv.similarity(text, "target"))
+        self.content = sorted(
+            self.content, key=lambda text: model.wv.similarity(text, "target"))
 
     def generate_original_content(self):
         original_content = []
         for text in self.content:
             generated_text = self.generate_text(text)
             original_content.append(generated_text)
-        
+
         self.content.extend(original_content)
 
     def generate_text(self, text):
@@ -89,7 +90,7 @@ class ContentAggregator:
                 if hasattr(entity, 'label') and entity.label() == 'PERSON':
                     text = text.replace(entity[0][0], "Hello, " + entity[0][0])
             personalized_content.append(text)
-        
+
         self.content = personalized_content
 
     def schedule_content_publishing(self):
