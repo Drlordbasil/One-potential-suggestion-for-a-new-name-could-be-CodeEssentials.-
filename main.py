@@ -1,8 +1,9 @@
-import requests
-from bs4 import BeautifulSoup
-import nltk
-from gensim.models import Word2Vec
 from transformers import pipeline
+from gensim.models import Word2Vec
+import nltk
+from bs4 import BeautifulSoup
+import requests
+Optimized Python script:
 
 
 class WebScraper:
@@ -20,12 +21,8 @@ class WebScraper:
         response = requests.get(f"https://www.google.com/search?q={query}")
         soup = BeautifulSoup(response.text, "html.parser")
 
-        urls = []
-        for result in soup.find_all("a"):
-            url = result.get("href")
-            if url.startswith("/url?q="):
-                url = url[7:]
-                urls.append(url)
+        urls = [url[7:] for url in [result.get(
+            "href") for result in soup.find_all("a")] if url.startswith("/url?q=")]
 
         return urls
 
@@ -48,20 +45,12 @@ class ContentAggregator:
         self.content.extend(scraped_content)
 
     def filter_content(self):
-        filtered_content = []
-        for text in self.content:
-            filtered_text = self.filter_text(text)
-            filtered_content.append(filtered_text)
-
-        self.content = filtered_content
+        self.content = [self.filter_text(text) for text in self.content]
 
     def filter_text(self, text):
-        filtered_text = ""
         sentences = nltk.sent_tokenize(text)
-        for sentence in sentences:
-            words = nltk.word_tokenize(sentence)
-            words = [word for word in words if word.isalnum()]
-            filtered_text += " ".join(words) + " "
+        filtered_text = " ".join([" ".join([word for word in nltk.word_tokenize(
+            sentence) if word.isalnum()]) for sentence in sentences])
 
         return filtered_text.strip()
 
@@ -71,11 +60,7 @@ class ContentAggregator:
             self.content, key=lambda text: model.wv.similarity(text, "target"))
 
     def generate_original_content(self):
-        original_content = []
-        for text in self.content:
-            generated_text = self.generate_text(text)
-            original_content.append(generated_text)
-
+        original_content = [self.generate_text(text) for text in self.content]
         self.content.extend(original_content)
 
     def generate_text(self, text):
@@ -83,14 +68,8 @@ class ContentAggregator:
         return generated_text
 
     def personalize_content(self):
-        personalized_content = []
-        for text in self.content:
-            entities = nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(text)))
-            for entity in entities:
-                if hasattr(entity, 'label') and entity.label() == 'PERSON':
-                    text = text.replace(entity[0][0], "Hello, " + entity[0][0])
-            personalized_content.append(text)
-
+        personalized_content = [text.replace(entity[0][0], "Hello, " + entity[0][0]) if hasattr(entity, 'label') and entity.label(
+        ) == 'PERSON' else text for text in self.content for entities in [nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(text)))]]
         self.content = personalized_content
 
     def schedule_content_publishing(self):
@@ -129,10 +108,8 @@ def main():
     content_aggregator.filter_content()
 
     nlp_processor = NLPProcessor()
-    sentiments = []
-    for text in content_aggregator.content:
-        sentiment = nlp_processor.analyze_sentiment(text)
-        sentiments.append(sentiment)
+    sentiments = [nlp_processor.analyze_sentiment(
+        text) for text in content_aggregator.content]
 
     content_aggregator.rank_content()
     content_aggregator.generate_original_content()
